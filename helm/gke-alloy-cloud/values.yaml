@@ -3,23 +3,25 @@
 # Set these before deploying - get values from grafana.com -> My Account -> Stack
 # ============================================================
 grafanaCloud:
-  apiKey: ""  # Cloud Access Policy token with metrics:write, logs:write, traces:write, profiles:write
-
   prometheus:
-    url: ""       # e.g. https://prometheus-prod-01-eu-west-0.grafana.net/api/prom/push
+    url: ""       # e.g. https://prometheus-us-central1.grafana.net/api/prom/push
     username: ""  # numeric user ID shown on the Prometheus "Details" page
+    token: ""     # Cloud Access Policy token with metrics:write
 
   loki:
-    url: ""       # e.g. https://logs-prod-eu-west-0.grafana.net/loki/api/v1/push
+    url: ""       # e.g. https://logs-prod-017.grafana.net/loki/api/v1/push
     username: ""  # numeric user ID shown on the Loki "Details" page
+    token: ""     # Cloud Access Policy token with logs:write
 
   tempo:
-    endpoint: ""  # e.g. tempo-eu-west-0.grafana.net:443  (host:port, no scheme)
+    endpoint: ""  # e.g. tempo-us-central1.grafana.net:443  (host:port, no scheme)
     username: ""  # numeric user ID shown on the Tempo "Details" page
+    token: ""     # Cloud Access Policy token with traces:write
 
   profiles:
-    url: ""       # e.g. https://profiles-prod-001.grafana.net
+    url: ""       # e.g. https://profiles-prod-003.grafana.net
     username: ""  # numeric user ID shown on the Profiles "Details" page
+    token: ""     # Cloud Access Policy token with profiles:write
 
 # ============================================================
 # Alloy sub-chart configuration
@@ -270,7 +272,7 @@ alloy:
             url = sys.env("GRAFANA_CLOUD_PROMETHEUS_URL")
             basic_auth {
               username = sys.env("GRAFANA_CLOUD_METRICS_USER")
-              password = sys.env("GRAFANA_CLOUD_API_KEY")
+              password = sys.env("GRAFANA_CLOUD_PROM_TOKEN")
             }
             queue_config {
               capacity             = 10000
@@ -324,7 +326,7 @@ alloy:
             url = sys.env("GRAFANA_CLOUD_LOKI_URL")
             basic_auth {
               username = sys.env("GRAFANA_CLOUD_LOGS_USER")
-              password = sys.env("GRAFANA_CLOUD_API_KEY")
+              password = sys.env("GRAFANA_CLOUD_LOKI_TOKEN")
             }
           }
           external_labels = {
@@ -387,7 +389,7 @@ alloy:
 
         otelcol.auth.basic "grafana_cloud" {
           username = sys.env("GRAFANA_CLOUD_TEMPO_USER")
-          password = sys.env("GRAFANA_CLOUD_API_KEY")
+          password = sys.env("GRAFANA_CLOUD_TEMPO_TOKEN")
         }
 
         otelcol.exporter.otlp "grafana_cloud" {
@@ -475,7 +477,7 @@ alloy:
             url = sys.env("GRAFANA_CLOUD_PROFILES_URL")
             basic_auth {
               username = sys.env("GRAFANA_CLOUD_PROFILES_USER")
-              password = sys.env("GRAFANA_CLOUD_API_KEY")
+              password = sys.env("GRAFANA_CLOUD_PROFILES_TOKEN")
             }
           }
           external_labels = {
