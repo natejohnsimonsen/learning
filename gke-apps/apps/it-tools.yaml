@@ -1,0 +1,52 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: it-tools
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+  source:
+    repoURL: https://bjw-s.github.io/helm-charts
+    chart: app-template
+    targetRevision: "3.*"
+    helm:
+      releaseName: it-tools
+      values: |
+        controllers:
+          it-tools:
+            containers:
+              app:
+                image:
+                  repository: ghcr.io/corentinth/it-tools
+                  tag: latest
+                resources:
+                  requests:
+                    cpu: 50m
+                    memory: 64Mi
+        service:
+          app:
+            controller: it-tools
+            ports:
+              http:
+                port: 80
+        ingress:
+          app:
+            className: nginx
+            hosts:
+              - host: it-tools.your-domain.com  # update this
+                paths:
+                  - path: /
+                    service:
+                      identifier: app
+                      port: http
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: it-tools
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
