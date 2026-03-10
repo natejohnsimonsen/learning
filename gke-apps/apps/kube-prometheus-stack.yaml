@@ -18,6 +18,18 @@ spec:
           adminPassword: "admin"
           service:
             type: ClusterIP
+          ingress:
+            enabled: true
+            ingressClassName: nginx
+            annotations:
+              cert-manager.io/cluster-issuer: "letsencrypt-prod"
+              nginx.ingress.kubernetes.io/ssl-redirect: "true"
+            hosts:
+              - grafana.natejsimonsen.com
+            tls:
+              - secretName: grafana-tls
+                hosts:
+                  - grafana.natejsimonsen.com
         prometheus:
           prometheusSpec:
             serviceMonitorSelectorNilUsesHelmValues: false
