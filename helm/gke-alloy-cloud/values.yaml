@@ -305,8 +305,6 @@ alloy:
         loki.process "enrich_logs" {
           forward_to = [loki.write.grafana_cloud.receiver]
 
-          stage.kubernetes {}
-
           stage.labels {
             values = {
               namespace = "",
