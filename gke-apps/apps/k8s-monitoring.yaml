@@ -81,7 +81,7 @@ spec:
                 enabled: true
 
         profiling:
-          enabled: true
+          enabled: false
 
         alloy-metrics:
           enabled: true
