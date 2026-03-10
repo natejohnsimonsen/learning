@@ -1,0 +1,30 @@
+apiVersion: v2
+name: grafana-local-stack
+description: Full local observability stack - Prometheus, Loki, Tempo, Pyroscope, and Grafana
+type: application
+version: 0.1.0
+dependencies:
+  # Prometheus + Grafana + Alertmanager
+  - name: kube-prometheus-stack
+    version: "67.*"
+    repository: "https://prometheus-community.github.io/helm-charts"
+
+  # Log aggregation
+  - name: loki
+    version: "6.*"
+    repository: "https://grafana.github.io/helm-charts"
+
+  # Distributed tracing
+  - name: tempo
+    version: "1.*"
+    repository: "https://grafana.github.io/helm-charts"
+
+  # Continuous profiling
+  - name: pyroscope
+    version: "1.*"
+    repository: "https://grafana.github.io/helm-charts"
+
+  # Alloy collector - sends everything to the local backends
+  - name: alloy
+    version: "0.12.*"
+    repository: "https://grafana.github.io/helm-charts"

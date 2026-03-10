@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: otel-demo
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: default
+  source:
+    repoURL: https://open-telemetry.github.io/opentelemetry-helm-charts
+    chart: opentelemetry-demo
+    targetRevision: "*"
+    helm:
+      releaseName: otel-demo
+      values: |
+        # Use the kube-prometheus-stack Prometheus instead of the bundled one
+        prometheus:
+          enabled: false
+        grafana:
+          enabled: false
+        opentelemetry-collector:
+          config:
+            exporters:
+              prometheus:
+                endpoint: "0.0.0.0:9464"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: otel-demo
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true

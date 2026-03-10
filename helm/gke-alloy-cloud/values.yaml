@@ -1,0 +1,511 @@
+# ============================================================
+# Grafana Cloud connection details
+# Set these before deploying - get values from grafana.com -> My Account -> Stack
+# ============================================================
+grafanaCloud:
+  apiKey: ""  # Cloud Access Policy token with metrics:write, logs:write, traces:write, profiles:write
+
+  prometheus:
+    url: ""       # e.g. https://prometheus-prod-01-eu-west-0.grafana.net/api/prom/push
+    username: ""  # numeric user ID shown on the Prometheus "Details" page
+
+  loki:
+    url: ""       # e.g. https://logs-prod-eu-west-0.grafana.net/loki/api/v1/push
+    username: ""  # numeric user ID shown on the Loki "Details" page
+
+  tempo:
+    endpoint: ""  # e.g. tempo-eu-west-0.grafana.net:443  (host:port, no scheme)
+    username: ""  # numeric user ID shown on the Tempo "Details" page
+
+  profiles:
+    url: ""       # e.g. https://profiles-prod-001.grafana.net
+    username: ""  # numeric user ID shown on the Profiles "Details" page
+
+# ============================================================
+# Alloy sub-chart configuration
+# ============================================================
+alloy:
+  crds:
+    create: false  # CRDs managed separately or not needed for this config
+
+  alloy:
+    clustering:
+      enabled: false  # Enable if running multiple replicas
+
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+
+    # Expose OTLP ports so applications in the cluster can send traces
+    extraPorts:
+      - name: otlp-grpc
+        port: 4317
+        targetPort: 4317
+        protocol: TCP
+      - name: otlp-http
+        port: 4318
+        targetPort: 4318
+        protocol: TCP
+
+    # Mount credentials from secret
+    envFrom:
+      - secretRef:
+          name: grafana-cloud-credentials
+
+    # Alloy River configuration - collects everything from the cluster
+    configMap:
+      content: |
+        // ============================================================
+        // KUBERNETES DISCOVERY
+        // ============================================================
+
+        discovery.kubernetes "nodes" {
+          role = "node"
+        }
+
+        discovery.kubernetes "pods" {
+          role = "pod"
+        }
+
+        discovery.kubernetes "services" {
+          role = "service"
+        }
+
+        discovery.kubernetes "endpoints" {
+          role = "endpoints"
+        }
+
+        // ============================================================
+        // METRICS - Kubelet
+        // ============================================================
+
+        discovery.relabel "kubelet" {
+          targets = discovery.kubernetes.nodes.targets
+          rule {
+            target_label = "__address__"
+            replacement  = "kubernetes.default.svc.cluster.local:443"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_node_name"]
+            regex         = "(.+)"
+            target_label  = "__metrics_path__"
+            replacement   = "/api/v1/nodes/$1/proxy/metrics"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_node_name"]
+            target_label  = "node"
+          }
+          // GKE-specific node metadata
+          rule {
+            source_labels = ["__meta_kubernetes_node_label_cloud_google_com_gke_nodepool"]
+            target_label  = "nodepool"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_node_label_topology_kubernetes_io_zone"]
+            target_label  = "zone"
+          }
+        }
+
+        prometheus.scrape "kubelet" {
+          targets           = discovery.relabel.kubelet.output
+          scrape_interval   = "30s"
+          scheme            = "https"
+          tls_config {
+            ca_file              = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+            insecure_skip_verify = true
+          }
+          bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+          forward_to        = [prometheus.remote_write.grafana_cloud.receiver]
+        }
+
+        // ============================================================
+        // METRICS - cAdvisor (container resource usage)
+        // ============================================================
+
+        discovery.relabel "cadvisor" {
+          targets = discovery.kubernetes.nodes.targets
+          rule {
+            target_label = "__address__"
+            replacement  = "kubernetes.default.svc.cluster.local:443"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_node_name"]
+            regex         = "(.+)"
+            target_label  = "__metrics_path__"
+            replacement   = "/api/v1/nodes/$1/proxy/metrics/cadvisor"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_node_name"]
+            target_label  = "node"
+          }
+        }
+
+        prometheus.scrape "cadvisor" {
+          targets           = discovery.relabel.cadvisor.output
+          scrape_interval   = "30s"
+          scheme            = "https"
+          tls_config {
+            insecure_skip_verify = true
+          }
+          bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+          forward_to        = [prometheus.remote_write.grafana_cloud.receiver]
+        }
+
+        // ============================================================
+        // METRICS - Pods with prometheus.io/scrape annotation
+        // ============================================================
+
+        discovery.relabel "annotated_pods" {
+          targets = discovery.kubernetes.pods.targets
+          rule {
+            source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_scrape"]
+            regex         = "true"
+            action        = "keep"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_phase"]
+            regex         = "Pending|Succeeded|Failed|Completed"
+            action        = "drop"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_scheme"]
+            regex         = "(https?)"
+            target_label  = "__scheme__"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_path"]
+            regex         = "(.+)"
+            target_label  = "__metrics_path__"
+          }
+          rule {
+            source_labels = ["__address__", "__meta_kubernetes_pod_annotation_prometheus_io_port"]
+            regex         = "([^:]+)(?::\\d+)?;(\\d+)"
+            replacement   = "$1:$2"
+            target_label  = "__address__"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_namespace"]
+            target_label  = "namespace"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_name"]
+            target_label  = "pod"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_container_name"]
+            target_label  = "container"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_node_name"]
+            target_label  = "node"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
+            target_label  = "app"
+          }
+        }
+
+        prometheus.scrape "annotated_pods" {
+          targets         = discovery.relabel.annotated_pods.output
+          scrape_interval = "30s"
+          forward_to      = [prometheus.remote_write.grafana_cloud.receiver]
+        }
+
+        // ============================================================
+        // METRICS - Services with prometheus.io/scrape annotation
+        // ============================================================
+
+        discovery.relabel "annotated_services" {
+          targets = discovery.kubernetes.endpoints.targets
+          rule {
+            source_labels = ["__meta_kubernetes_service_annotation_prometheus_io_scrape"]
+            regex         = "true"
+            action        = "keep"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_service_annotation_prometheus_io_scheme"]
+            regex         = "(https?)"
+            target_label  = "__scheme__"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_service_annotation_prometheus_io_path"]
+            regex         = "(.+)"
+            target_label  = "__metrics_path__"
+          }
+          rule {
+            source_labels = ["__address__", "__meta_kubernetes_service_annotation_prometheus_io_port"]
+            regex         = "([^:]+)(?::\\d+)?;(\\d+)"
+            replacement   = "$1:$2"
+            target_label  = "__address__"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_namespace"]
+            target_label  = "namespace"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_service_name"]
+            target_label  = "service"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_node_name"]
+            target_label  = "node"
+          }
+        }
+
+        prometheus.scrape "annotated_services" {
+          targets         = discovery.relabel.annotated_services.output
+          scrape_interval = "30s"
+          forward_to      = [prometheus.remote_write.grafana_cloud.receiver]
+        }
+
+        // ============================================================
+        // METRICS - Prometheus Remote Write to Grafana Cloud
+        // ============================================================
+
+        prometheus.remote_write "grafana_cloud" {
+          endpoint {
+            url = sys.env("GRAFANA_CLOUD_PROMETHEUS_URL")
+            basic_auth {
+              username = sys.env("GRAFANA_CLOUD_METRICS_USER")
+              password = sys.env("GRAFANA_CLOUD_API_KEY")
+            }
+            queue_config {
+              capacity             = 10000
+              max_samples_per_send = 5000
+              max_shards           = 30
+            }
+          }
+          external_labels = {
+            cluster = "gke",
+            env     = "production",
+          }
+        }
+
+        // ============================================================
+        // LOGS - Pod logs via Kubernetes API
+        // ============================================================
+
+        loki.source.kubernetes "pods" {
+          targets    = discovery.kubernetes.pods.targets
+          forward_to = [loki.process.enrich_logs.receiver]
+        }
+
+        // Kubernetes cluster events as logs
+        loki.source.kubernetes_events "cluster_events" {
+          job_name   = "integrations/kubernetes/eventhandler"
+          log_format = "logfmt"
+          forward_to = [loki.process.enrich_logs.receiver]
+        }
+
+        loki.process "enrich_logs" {
+          forward_to = [loki.write.grafana_cloud.receiver]
+
+          stage.kubernetes {}
+
+          stage.labels {
+            values = {
+              namespace = "",
+              pod       = "",
+              container = "",
+              node      = "",
+            }
+          }
+
+          stage.label_keep {
+            values = ["namespace", "pod", "container", "node", "job", "app"]
+          }
+        }
+
+        loki.write "grafana_cloud" {
+          endpoint {
+            url = sys.env("GRAFANA_CLOUD_LOKI_URL")
+            basic_auth {
+              username = sys.env("GRAFANA_CLOUD_LOGS_USER")
+              password = sys.env("GRAFANA_CLOUD_API_KEY")
+            }
+          }
+          external_labels = {
+            cluster = "gke",
+            env     = "production",
+          }
+        }
+
+        // ============================================================
+        // TRACES - OTLP receiver -> Grafana Cloud Tempo
+        // ============================================================
+
+        otelcol.receiver.otlp "default" {
+          grpc {
+            endpoint = "0.0.0.0:4317"
+          }
+          http {
+            endpoint = "0.0.0.0:4318"
+          }
+          output {
+            traces = [otelcol.processor.k8sattributes.default.input]
+          }
+        }
+
+        // Enrich traces with Kubernetes metadata
+        otelcol.processor.k8sattributes "default" {
+          extract {
+            metadata = [
+              "k8s.namespace.name",
+              "k8s.pod.name",
+              "k8s.pod.uid",
+              "k8s.node.name",
+              "k8s.deployment.name",
+              "k8s.statefulset.name",
+              "k8s.daemonset.name",
+              "k8s.container.name",
+            ]
+          }
+          pod_association {
+            source {
+              from = "resource_attribute"
+              name = "k8s.pod.ip"
+            }
+          }
+          pod_association {
+            source {
+              from = "connection"
+            }
+          }
+          output {
+            traces = [otelcol.processor.batch.default.input]
+          }
+        }
+
+        otelcol.processor.batch "default" {
+          output {
+            traces = [otelcol.exporter.otlp.grafana_cloud.input]
+          }
+        }
+
+        otelcol.auth.basic "grafana_cloud" {
+          username = sys.env("GRAFANA_CLOUD_TEMPO_USER")
+          password = sys.env("GRAFANA_CLOUD_API_KEY")
+        }
+
+        otelcol.exporter.otlp "grafana_cloud" {
+          client {
+            endpoint = sys.env("GRAFANA_CLOUD_TEMPO_ENDPOINT")
+            auth     = otelcol.auth.basic.grafana_cloud.handler
+            tls {
+              insecure = false
+            }
+          }
+        }
+
+        // ============================================================
+        // PROFILES - Pyroscope scraping from annotated pods
+        // Annotate pods with: profiles.grafana.com/scrape: "true"
+        // ============================================================
+
+        discovery.relabel "profiling_pods" {
+          targets = discovery.kubernetes.pods.targets
+          rule {
+            source_labels = ["__meta_kubernetes_pod_annotation_profiles_grafana_com_scrape"]
+            regex         = "true"
+            action        = "keep"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_phase"]
+            regex         = "Pending|Succeeded|Failed|Completed"
+            action        = "drop"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_annotation_profiles_grafana_com_port"]
+            regex         = "(\\d+)"
+            target_label  = "__profile_port__"
+          }
+          rule {
+            source_labels = ["__address__", "__profile_port__"]
+            regex         = "([^:]+)(?::\\d+)?;(\\d+)"
+            replacement   = "$1:$2"
+            target_label  = "__address__"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_namespace"]
+            target_label  = "namespace"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_name"]
+            target_label  = "pod"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_container_name"]
+            target_label  = "container"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_node_name"]
+            target_label  = "node"
+          }
+        }
+
+        pyroscope.scrape "kubernetes_pods" {
+          targets         = discovery.relabel.profiling_pods.output
+          forward_to      = [pyroscope.write.grafana_cloud.receiver]
+          scrape_interval = "15s"
+
+          profiling_config {
+            profile.block {
+              enabled = true
+            }
+            profile.goroutine {
+              enabled = true
+            }
+            profile.memory {
+              enabled = true
+            }
+            profile.mutex {
+              enabled = true
+            }
+            profile.process_cpu {
+              enabled = true
+            }
+          }
+        }
+
+        pyroscope.write "grafana_cloud" {
+          endpoint {
+            url = sys.env("GRAFANA_CLOUD_PROFILES_URL")
+            basic_auth {
+              username = sys.env("GRAFANA_CLOUD_PROFILES_USER")
+              password = sys.env("GRAFANA_CLOUD_API_KEY")
+            }
+          }
+          external_labels = {
+            cluster = "gke",
+            env     = "production",
+          }
+        }
+
+  # Alloy UI - useful for debugging the pipeline
+  uiPathPrefix: /
+
+  serviceAccount:
+    create: true
+    name: "{{ .Release.Name }}-alloy"
+
+  controller:
+    type: deployment
+    replicas: 1
+
+    podAnnotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "12345"
+
+    tolerations: []
+    nodeSelector: {}
+
+  service:
+    enabled: true
+    type: ClusterIP
+
+  serviceMonitor:
+    enabled: false  # Enable if you have Prometheus operator installed

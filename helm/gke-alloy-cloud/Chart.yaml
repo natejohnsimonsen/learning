@@ -1,0 +1,10 @@
+apiVersion: v2
+name: gke-alloy-cloud
+description: Grafana Alloy collector for GKE - sends metrics, logs, traces, and profiles to Grafana Cloud
+type: application
+version: 0.1.0
+appVersion: "1.8.0"
+dependencies:
+  - name: alloy
+    version: "0.12.*"
+    repository: "https://grafana.github.io/helm-charts"
