@@ -5,7 +5,7 @@ metadata:
   namespace: argocd
   annotations:
     # Wave 0 ensures cert-manager CRDs (wave -1) are ready before ClusterIssuer is applied
-    argocd.argoproj.io/sync-wave: "0"
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   project: default
   source:
