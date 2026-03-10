@@ -68,10 +68,11 @@ spec:
         applicationObservability:
           enabled: true
           receivers:
-            grpc:
-              enabled: true
-            http:
-              enabled: true
+            otlp:
+              grpc:
+                enabled: true
+              http:
+                enabled: true
 
         profiling:
           enabled: true
@@ -90,6 +91,7 @@ spec:
                   name: grafana-cloud-credentials
 
         alloy-singleton:
+          enabled: true
           alloy:
             resources:
               requests:
@@ -102,6 +104,7 @@ spec:
                   name: grafana-cloud-credentials
 
         alloy-logs:
+          enabled: true
           alloy:
             resources:
               requests:
@@ -114,6 +117,7 @@ spec:
                   name: grafana-cloud-credentials
 
         alloy-receiver:
+          enabled: true
           alloy:
             resources:
               requests:
@@ -126,6 +130,7 @@ spec:
                   name: grafana-cloud-credentials
 
         alloy-profiles:
+          enabled: true
           alloy:
             resources:
               requests:
