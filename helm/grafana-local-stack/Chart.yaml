@@ -6,7 +6,7 @@ version: 0.1.0
 dependencies:
   # Prometheus + Grafana + Alertmanager
   - name: kube-prometheus-stack
-    version: "67.*"
+    version: "82.*"
     repository: "https://prometheus-community.github.io/helm-charts"
 
   # Log aggregation
@@ -26,5 +26,5 @@ dependencies:
 
   # Alloy collector - sends everything to the local backends
   - name: alloy
-    version: "0.12.*"
+    version: "1.*"
     repository: "https://grafana.github.io/helm-charts"
