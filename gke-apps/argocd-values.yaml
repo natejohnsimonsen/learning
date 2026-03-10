@@ -14,9 +14,9 @@ repoServer:
   resources:
     requests:
       cpu: 100m
-      memory: 1Gi
-    limits:
       memory: 2Gi
+    limits:
+      memory: 4Gi
 
 applicationSet:
   replicas: 2
