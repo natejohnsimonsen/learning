@@ -39,6 +39,8 @@ spec:
             protocol: grpc
             metrics:
               enabled: false
+            logs:
+              enabled: false
             auth:
               type: basic
               username: "404869"
