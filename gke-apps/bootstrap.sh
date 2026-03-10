@@ -11,6 +11,9 @@ kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
 helm upgrade --install argocd argo/argo-cd \
   --namespace argocd \
   --set "server.extraArgs[0]=--insecure" \
+  --set "repoServer.resources.requests.cpu=100m" \
+  --set "repoServer.resources.requests.memory=128Mi" \
+  --set "repoServer.resources.limits.memory=256Mi" \
   --wait
 
 # Bootstrap the app-of-apps
