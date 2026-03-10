@@ -1,0 +1,144 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: k8s-monitoring
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+  source:
+    repoURL: https://grafana.github.io/helm-charts
+    chart: k8s-monitoring
+    targetRevision: "3.8.1"
+    helm:
+      releaseName: k8s-monitoring
+      values: |
+        cluster:
+          name: my-gke-cluster
+
+        destinations:
+          - name: grafana-cloud-metrics
+            type: prometheus
+            url: https://prometheus-us-central1.grafana.net/api/prom/push
+            auth:
+              type: basic
+              username: "818775"
+              passwordFrom: sys.env("GRAFANA_CLOUD_PROM_TOKEN")
+          - name: grafana-cloud-logs
+            type: loki
+            url: https://logs-prod-017.grafana.net/loki/api/v1/push
+            auth:
+              type: basic
+              username: "408356"
+              passwordFrom: sys.env("GRAFANA_CLOUD_LOKI_TOKEN")
+          - name: grafana-cloud-traces
+            type: otlp
+            url: https://tempo-us-central1.grafana.net
+            port: 443
+            protocol: grpc
+            auth:
+              type: basic
+              username: "404869"
+              passwordFrom: sys.env("GRAFANA_CLOUD_TEMPO_TOKEN")
+          - name: grafana-cloud-profiles
+            type: pyroscope
+            url: https://profiles-prod-003.grafana.net
+            auth:
+              type: basic
+              username: "558960"
+              passwordFrom: sys.env("GRAFANA_CLOUD_PROFILES_TOKEN")
+
+        clusterMetrics:
+          enabled: true
+
+        clusterEvents:
+          enabled: true
+
+        podLogs:
+          enabled: true
+
+        annotationAutodiscovery:
+          enabled: true
+
+        applicationObservability:
+          enabled: true
+          receivers:
+            grpc:
+              enabled: true
+            http:
+              enabled: true
+
+        profiling:
+          enabled: true
+
+        alloy-metrics:
+          alloy:
+            resources:
+              requests:
+                cpu: 100m
+                memory: 128Mi
+              limits:
+                memory: 256Mi
+            envFrom:
+              - secretRef:
+                  name: grafana-cloud-credentials
+
+        alloy-singleton:
+          alloy:
+            resources:
+              requests:
+                cpu: 50m
+                memory: 64Mi
+              limits:
+                memory: 128Mi
+            envFrom:
+              - secretRef:
+                  name: grafana-cloud-credentials
+
+        alloy-logs:
+          alloy:
+            resources:
+              requests:
+                cpu: 50m
+                memory: 64Mi
+              limits:
+                memory: 128Mi
+            envFrom:
+              - secretRef:
+                  name: grafana-cloud-credentials
+
+        alloy-receiver:
+          alloy:
+            resources:
+              requests:
+                cpu: 50m
+                memory: 64Mi
+              limits:
+                memory: 128Mi
+            envFrom:
+              - secretRef:
+                  name: grafana-cloud-credentials
+
+        alloy-profiles:
+          alloy:
+            resources:
+              requests:
+                cpu: 50m
+                memory: 64Mi
+              limits:
+                memory: 128Mi
+            envFrom:
+              - secretRef:
+                  name: grafana-cloud-credentials
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
