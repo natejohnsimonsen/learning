@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Install Argo CD via helm so we can configure --insecure mode
-# (TLS is terminated at the ingress; argocd-server speaks plain HTTP internally)
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 helm repo add argo https://argoproj.github.io/argo-helm
 helm repo update
 
@@ -10,15 +10,12 @@ kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
 
 helm upgrade --install argocd argo/argo-cd \
   --namespace argocd \
-  --set "server.extraArgs[0]=--insecure" \
-  --set "repoServer.resources.requests.cpu=100m" \
-  --set "repoServer.resources.requests.memory=128Mi" \
-  --set "repoServer.resources.limits.memory=256Mi" \
+  -f "$DIR/argocd-values.yaml" \
   --wait
 
 # Bootstrap the app-of-apps
 # Edit apps/root.yaml with your git repo URL before running this.
-kubectl apply -f apps/root.yaml
+kubectl apply -f "$DIR/apps/root.yaml"
 
 echo ""
 echo "Argo CD is up. Get the initial admin password:"
