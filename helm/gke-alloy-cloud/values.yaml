@@ -491,7 +491,7 @@ alloy:
 
   serviceAccount:
     create: true
-    name: "{{ .Release.Name }}-alloy"
+    name: "gke-alloy-alloy"
 
   controller:
     type: deployment

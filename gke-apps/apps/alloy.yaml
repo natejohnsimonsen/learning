@@ -11,6 +11,8 @@ spec:
     repoURL: https://github.com/natejohnsimonsen/learning
     targetRevision: HEAD
     path: helm/gke-alloy-cloud
+    helm:
+      releaseName: gke-alloy
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
