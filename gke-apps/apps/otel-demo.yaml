@@ -17,12 +17,6 @@ spec:
         global:
           imagePullSecrets:
             - name: ghcr-pull-secret
-        default:
-          resources:
-            requests:
-              memory: 64Mi
-            limits:
-              memory: 128Mi
         # Use the kube-prometheus-stack Prometheus instead of the bundled one
         prometheus:
           enabled: false
