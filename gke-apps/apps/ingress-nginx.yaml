@@ -15,6 +15,7 @@ spec:
       releaseName: ingress-nginx
       values: |
         controller:
+          replicaCount: 3
           imagePullSecrets:
             - name: ghcr-pull-secret
           service:
