@@ -40,9 +40,9 @@ redis-ha:
   resources:
     requests:
       cpu: 25m
-      memory: 256Mi
-    limits:
       memory: 512Mi
+    limits:
+      memory: 1Gi
   haproxy:
     resources:
       requests:
