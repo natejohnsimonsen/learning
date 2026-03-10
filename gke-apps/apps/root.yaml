@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/YOUR_ORG/YOUR_REPO  # <-- update this
+    repoURL: https://github.com/natejohnsimonsen/learning
     targetRevision: HEAD
     path: gke-apps/apps
     directory:
