@@ -17,6 +17,9 @@ spec:
         global:
           imagePullSecrets:
             - name: ghcr-pull-secret
+        grafana:
+          host: https://natejsimonsen.grafana.net
+          tokenFrom: sys.env("GRAFANA_CLOUD_GRAFANA_TOKEN")
         cluster:
           name: my-gke-cluster
 
