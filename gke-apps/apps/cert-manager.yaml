@@ -19,6 +19,26 @@ spec:
           enabled: true
           servicemonitor:
             enabled: true
+        resources:
+          requests:
+            cpu: 20m
+            memory: 64Mi
+          limits:
+            memory: 128Mi
+        cainjector:
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+            limits:
+              memory: 128Mi
+        webhook:
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 64Mi
   destination:
     server: https://kubernetes.default.svc
     namespace: cert-manager
