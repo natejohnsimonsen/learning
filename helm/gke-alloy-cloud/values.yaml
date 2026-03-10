@@ -37,8 +37,7 @@ alloy:
         cpu: 100m
         memory: 256Mi
       limits:
-        cpu: 1000m
-        memory: 1Gi
+        memory: 512Mi
 
     # Expose OTLP ports so applications in the cluster can send traces
     extraPorts:

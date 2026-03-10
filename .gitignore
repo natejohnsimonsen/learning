@@ -18,6 +18,10 @@ crash.*.log
 **/charts/
 **/Chart.lock
 *.tgz
+# Exception: committed helm chart dependencies for ArgoCD
+!helm/gke-alloy-cloud/charts/
+!helm/gke-alloy-cloud/charts/*.tgz
+!helm/gke-alloy-cloud/Chart.lock
 
 # OS
 .DS_Store
