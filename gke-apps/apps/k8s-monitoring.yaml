@@ -37,6 +37,8 @@ spec:
             url: https://tempo-us-central1.grafana.net
             port: 443
             protocol: grpc
+            metrics:
+              enabled: false
             auth:
               type: basic
               username: "404869"
