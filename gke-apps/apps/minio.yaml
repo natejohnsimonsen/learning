@@ -21,6 +21,18 @@ spec:
           size: 20Gi
         consoleService:
           type: ClusterIP
+        consoleIngress:
+          enabled: true
+          ingressClassName: nginx
+          annotations:
+            cert-manager.io/cluster-issuer: letsencrypt-prod
+            nginx.ingress.kubernetes.io/ssl-redirect: "true"
+          hosts:
+            - minio.natejsimonsen.com
+          tls:
+            - secretName: minio-tls
+              hosts:
+                - minio.natejsimonsen.com
         resources:
           requests:
             memory: 512Mi

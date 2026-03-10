@@ -31,9 +31,34 @@ spec:
                 hosts:
                   - grafana.natejsimonsen.com
         prometheus:
+          ingress:
+            enabled: true
+            ingressClassName: nginx
+            annotations:
+              cert-manager.io/cluster-issuer: letsencrypt-prod
+              nginx.ingress.kubernetes.io/ssl-redirect: "true"
+            hosts:
+              - prometheus.natejsimonsen.com
+            tls:
+              - secretName: prometheus-tls
+                hosts:
+                  - prometheus.natejsimonsen.com
           prometheusSpec:
             serviceMonitorSelectorNilUsesHelmValues: false
             podMonitorSelectorNilUsesHelmValues: false
+        alertmanager:
+          ingress:
+            enabled: true
+            ingressClassName: nginx
+            annotations:
+              cert-manager.io/cluster-issuer: letsencrypt-prod
+              nginx.ingress.kubernetes.io/ssl-redirect: "true"
+            hosts:
+              - alertmanager.natejsimonsen.com
+            tls:
+              - secretName: alertmanager-tls
+                hosts:
+                  - alertmanager.natejsimonsen.com
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring

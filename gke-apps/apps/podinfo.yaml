@@ -18,6 +18,21 @@ spec:
         ui:
           color: "#4CAF50"
           message: "Hello from GKE!"
+        ingress:
+          enabled: true
+          className: nginx
+          annotations:
+            cert-manager.io/cluster-issuer: letsencrypt-prod
+            nginx.ingress.kubernetes.io/ssl-redirect: "true"
+          hosts:
+            - host: podinfo.natejsimonsen.com
+              paths:
+                - path: /
+                  pathType: Prefix
+          tls:
+            - secretName: podinfo-tls
+              hosts:
+                - podinfo.natejsimonsen.com
   destination:
     server: https://kubernetes.default.svc
     namespace: podinfo

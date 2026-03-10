@@ -34,13 +34,20 @@ spec:
         ingress:
           app:
             className: nginx
+            annotations:
+              cert-manager.io/cluster-issuer: letsencrypt-prod
+              nginx.ingress.kubernetes.io/ssl-redirect: "true"
             hosts:
-              - host: excalidraw.your-domain.com  # update this
+              - host: excalidraw.natejsimonsen.com
                 paths:
                   - path: /
                     service:
                       identifier: app
                       port: http
+            tls:
+              - secretName: excalidraw-tls
+                hosts:
+                  - excalidraw.natejsimonsen.com
   destination:
     server: https://kubernetes.default.svc
     namespace: excalidraw

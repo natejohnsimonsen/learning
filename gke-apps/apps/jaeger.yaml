@@ -16,6 +16,18 @@ spec:
       values: |
         allInOne:
           enabled: true
+          ingress:
+            enabled: true
+            ingressClassName: nginx
+            annotations:
+              cert-manager.io/cluster-issuer: letsencrypt-prod
+              nginx.ingress.kubernetes.io/ssl-redirect: "true"
+            hosts:
+              - jaeger.natejsimonsen.com
+            tls:
+              - secretName: jaeger-tls
+                hosts:
+                  - jaeger.natejsimonsen.com
         collector:
           enabled: false
         query:

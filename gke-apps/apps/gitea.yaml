@@ -21,7 +21,23 @@ spec:
             email: admin@example.com
           config:
             server:
-              DOMAIN: gitea.local
+              DOMAIN: gitea.natejsimonsen.com
+              ROOT_URL: https://gitea.natejsimonsen.com
+        ingress:
+          enabled: true
+          className: nginx
+          annotations:
+            cert-manager.io/cluster-issuer: letsencrypt-prod
+            nginx.ingress.kubernetes.io/ssl-redirect: "true"
+          hosts:
+            - host: gitea.natejsimonsen.com
+              paths:
+                - path: /
+                  pathType: Prefix
+          tls:
+            - secretName: gitea-tls
+              hosts:
+                - gitea.natejsimonsen.com
         postgresql-ha:
           enabled: false
         postgresql:
