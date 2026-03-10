@@ -19,20 +19,24 @@ spec:
           enabled: false
         grafana:
           enabled: false
-        default:
-          enabled: true
-          ingress:
-            enabled: true
-            ingressClassName: nginx
-            annotations:
-              cert-manager.io/cluster-issuer: letsencrypt-prod
-              nginx.ingress.kubernetes.io/ssl-redirect: "true"
-            hosts:
-              - otel-demo.natejsimonsen.com
-            tls:
-              - secretName: otel-demo-tls
-                hosts:
-                  - otel-demo.natejsimonsen.com
+        components:
+          frontend-proxy:
+            ingress:
+              enabled: true
+              ingressClassName: nginx
+              annotations:
+                cert-manager.io/cluster-issuer: letsencrypt-prod
+                nginx.ingress.kubernetes.io/ssl-redirect: "true"
+              hosts:
+                - host: otel-demo.natejsimonsen.com
+                  paths:
+                    - path: /
+                      pathType: Prefix
+                      port: 8080
+              tls:
+                - secretName: otel-demo-tls
+                  hosts:
+                    - otel-demo.natejsimonsen.com
         opentelemetry-collector:
           config:
             exporters:
