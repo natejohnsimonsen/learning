@@ -1,6 +1,6 @@
 # GKE Standard Private Cluster
 # Zonal (single zone) for free control plane.
-# 5x e2-small nodes always running -- no Autopilot scale-to-zero.
+# e2-medium nodes, autoscaling 1-10.
 module "gke" {
   source  = "terraform-google-modules/kubernetes-engine/google//modules/private-cluster"
   version = "~> 31.0"
@@ -28,15 +28,17 @@ module "gke" {
 
   node_pools = [
     {
-      name         = "default"
-      machine_type = "e2-small"
-      autoscaling  = false
-      node_count   = 5
-      disk_size_gb = 30
-      disk_type    = "pd-standard"
-      auto_repair  = true
-      auto_upgrade = true
-      preemptible  = false
+      name               = "default"
+      machine_type       = "e2-medium"
+      autoscaling        = true
+      min_count          = 1
+      max_count          = 10
+      initial_node_count = 3
+      disk_size_gb       = 30
+      disk_type          = "pd-standard"
+      auto_repair        = true
+      auto_upgrade       = true
+      preemptible        = false
     }
   ]
 

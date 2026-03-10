@@ -8,8 +8,8 @@
 - **Type:** GKE Standard (private nodes)
 - **Region:** us-central1
 - **Zone:** us-central1-a (single zone, free control plane)
-- **Nodes:** 5x e2-small (2 vCPU, 2GB RAM, 30GB pd-standard)
-- **Autoscaling:** disabled (fixed 5 nodes)
+- **Nodes:** e2-medium (2 vCPU, 4GB RAM, 30GB pd-standard)
+- **Autoscaling:** 1-10 nodes
 
 ### Networking
 - **VPC Network:** my-gke-cluster-network
@@ -38,8 +38,8 @@ terraform apply -var="project_id=nate-gke-cluster-2025"
 
 | Component | $/month |
 |---|---|
-| 5x e2-small nodes | ~$49 |
-| 30GB pd-standard x5 | ~$6 |
+| e2-medium nodes (autoscaling 1-10, ~3 typical) | ~$81 |
+| 30GB pd-standard (per node) | ~$1.50/node |
 | Cloud NAT | ~$33 |
 | Static external IP | ~$3 |
 | Control plane (zonal) | free |
