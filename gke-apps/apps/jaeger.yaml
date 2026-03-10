@@ -14,8 +14,15 @@ spec:
     helm:
       releaseName: jaeger
       values: |
+        imagePullSecrets:
+          - name: ghcr-pull-secret
         allInOne:
           enabled: true
+          resources:
+            requests:
+              memory: 256Mi
+            limits:
+              memory: 512Mi
           ingress:
             enabled: true
             ingressClassName: nginx

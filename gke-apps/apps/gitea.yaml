@@ -14,6 +14,9 @@ spec:
     helm:
       releaseName: gitea
       values: |
+        global:
+          imagePullSecrets:
+            - ghcr-pull-secret
         gitea:
           admin:
             username: gitea_admin
@@ -46,6 +49,11 @@ spec:
           enabled: false
         redis:
           enabled: true
+        resources:
+          requests:
+            memory: 256Mi
+          limits:
+            memory: 512Mi
         persistence:
           size: 10Gi
   destination:

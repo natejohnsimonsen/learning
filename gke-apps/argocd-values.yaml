@@ -5,48 +5,48 @@ server:
   resources:
     requests:
       cpu: 50m
-      memory: 64Mi
+      memory: 256Mi
     limits:
-      memory: 128Mi
+      memory: 512Mi
 
 repoServer:
   replicas: 2
   resources:
     requests:
       cpu: 100m
-      memory: 128Mi
+      memory: 512Mi
     limits:
-      memory: 256Mi
+      memory: 1Gi
 
 applicationSet:
   replicas: 2
   resources:
     requests:
       cpu: 25m
-      memory: 64Mi
-    limits:
       memory: 128Mi
+    limits:
+      memory: 256Mi
 
 controller:
   resources:
     requests:
       cpu: 100m
-      memory: 128Mi
+      memory: 512Mi
     limits:
-      memory: 256Mi
+      memory: 1Gi
 
 redis-ha:
   enabled: true
   resources:
     requests:
       cpu: 25m
-      memory: 64Mi
-    limits:
       memory: 128Mi
+    limits:
+      memory: 256Mi
   haproxy:
     resources:
       requests:
         cpu: 25m
-        memory: 32Mi
-      limits:
         memory: 64Mi
+      limits:
+        memory: 128Mi

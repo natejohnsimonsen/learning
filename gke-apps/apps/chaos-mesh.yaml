@@ -14,8 +14,27 @@ spec:
     helm:
       releaseName: chaos-mesh
       values: |
+        imagePullSecrets:
+          - name: ghcr-pull-secret
+        controllerManager:
+          resources:
+            requests:
+              memory: 128Mi
+            limits:
+              memory: 256Mi
+        chaosDaemon:
+          resources:
+            requests:
+              memory: 64Mi
+            limits:
+              memory: 128Mi
         dashboard:
           securityMode: false
+          resources:
+            requests:
+              memory: 64Mi
+            limits:
+              memory: 128Mi
           ingress:
             enabled: true
             ingressClassName: nginx

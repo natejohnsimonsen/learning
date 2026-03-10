@@ -14,6 +14,9 @@ spec:
     helm:
       releaseName: loki
       values: |
+        global:
+          imagePullSecrets:
+            - name: ghcr-pull-secret
         loki:
           auth_enabled: false
           commonConfig:
@@ -22,6 +25,11 @@ spec:
             type: filesystem
         singleBinary:
           replicas: 1
+          resources:
+            requests:
+              memory: 256Mi
+            limits:
+              memory: 512Mi
         monitoring:
           selfMonitoring:
             enabled: false

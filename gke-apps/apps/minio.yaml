@@ -14,6 +14,8 @@ spec:
     helm:
       releaseName: minio
       values: |
+        imagePullSecrets:
+          - name: ghcr-pull-secret
         mode: standalone
         rootUser: admin
         rootPassword: changeme123
@@ -36,6 +38,8 @@ spec:
         resources:
           requests:
             memory: 512Mi
+          limits:
+            memory: 1Gi
   destination:
     server: https://kubernetes.default.svc
     namespace: minio

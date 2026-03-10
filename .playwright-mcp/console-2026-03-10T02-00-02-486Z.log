@@ -1,0 +1,6 @@
+[    1396ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:8080/api/v1/applications?fields=metadata.resourceVersion%2Citems.metadata.name%2Citems.metadata.namespace%2Citems.metadata.annotations%2Citems.metadata.labels%2Citems.metadata.creationTimestamp%2Citems.metadata.deletionTimestamp%2Citems.spec%2Citems.operation.sync%2Citems.status.sourceHydrator%2Citems.status.sync.status%2Citems.status.sync.revision%2Citems.status.health%2Citems.status.operationState.phase%2Citems.status.operationState.finishedAt%2Citems.status.operationState.operation.sync%2Citems.status.summary%2Citems.status.resources&selector=&appNamespace=:0
+[    1396ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:8080/api/v1/clusters:0
+[    1401ms] Error: Unauthorized
+    at E.<anonymous> (http://localhost:8080/main.7144d16f255a9f2b2e87.js:2:790073)
+    at t.emit (http://localhost:8080/main.7144d16f255a9f2b2e87.js:2:72124)
+    at XMLHttpRequest.<anonymous> (http://localhost:8080/main.7144d16f255a9f2b2e87.js:2:793876)

@@ -13,6 +13,25 @@ spec:
     targetRevision: "*"
     helm:
       releaseName: keda
+      values: |
+        imagePullSecrets:
+          - name: ghcr-pull-secret
+        resources:
+          operator:
+            requests:
+              memory: 64Mi
+            limits:
+              memory: 128Mi
+          metricServer:
+            requests:
+              memory: 64Mi
+            limits:
+              memory: 128Mi
+          webhooks:
+            requests:
+              memory: 32Mi
+            limits:
+              memory: 64Mi
   destination:
     server: https://kubernetes.default.svc
     namespace: keda
