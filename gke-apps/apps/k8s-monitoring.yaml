@@ -58,6 +58,9 @@ spec:
 
         clusterMetrics:
           enabled: true
+          kubeStateMetrics:
+            labelMatchers:
+              app.kubernetes.io/name: kube-state-metrics
 
         clusterEvents:
           enabled: true
