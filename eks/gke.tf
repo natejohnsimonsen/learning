@@ -28,12 +28,40 @@ module "gke" {
 
   node_pools = [
     {
-      name               = "default"
+      name               = "fallback-on-demand"
       machine_type       = "e2-standard-2"
       autoscaling        = true
       min_count          = 1
-      max_count          = 10
-      initial_node_count = 3
+      max_count          = 5
+      initial_node_count = 1
+      disk_size_gb       = 30
+      disk_type          = "pd-standard"
+      auto_repair        = true
+      auto_upgrade       = true
+      preemptible        = false
+      spot               = false
+    },
+    {
+      name               = "spot-standard-4"
+      machine_type       = "e2-standard-4"
+      autoscaling        = true
+      min_count          = 0
+      max_count          = 20
+      initial_node_count = 1
+      disk_size_gb       = 30
+      disk_type          = "pd-standard"
+      auto_repair        = true
+      auto_upgrade       = true
+      preemptible        = false
+      spot               = true
+    },
+    {
+      name               = "spot-n2d-4"
+      machine_type       = "n2d-standard-4"
+      autoscaling        = true
+      min_count          = 0
+      max_count          = 20
+      initial_node_count = 0
       disk_size_gb       = 30
       disk_type          = "pd-standard"
       auto_repair        = true
@@ -42,6 +70,17 @@ module "gke" {
       spot               = true
     }
   ]
+
+  node_pools_taints = {
+    all = []
+    fallback-on-demand = [
+      {
+        key    = "on-demand-fallback"
+        value  = "true"
+        effect = "NO_SCHEDULE"
+      }
+    ]
+  }
 
   deletion_protection = false
 
